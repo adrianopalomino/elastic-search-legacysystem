@@ -54,7 +54,7 @@ Play!
 # Create one person
 curl -XPUT http://127.0.0.1:8080/api/1/person/1 -H "Content-Type: application/json" -d '{"name":"David Pilato"}'
 
-# Read that person
+# Read that person on database only
 curl http://127.0.0.1:8080/api/1/person/1
 
 # Update full document
@@ -83,6 +83,13 @@ curl http://127.0.0.1:8080/api/1/person/_init?size=10000
 ```sh
 # Search for something (`a la google`)
 curl "http://127.0.0.1:8080/api/1/person/_search?q=Joe"
+```
+
+### Clear Database and elastic index
+
+```sh
+# Clear data on database and elastic index
+curl -XDELETE http://127.0.0.1:8080/api/1/person/clear-all
 ```
 
 You can then access the application using your browser: [http://127.0.0.1:8080/](http://127.0.0.1:8080/).
