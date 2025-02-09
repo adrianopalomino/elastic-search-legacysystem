@@ -1,4 +1,64 @@
-*.iml
-target/
-.idea/
+# Eclipse
+.metadata/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*.DS_Store
+*.class
+*.log
 
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+*.swp
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.javadoc
+*.java~
+*.log
+hs_err_pid*
+*.hprof
+*.orig
+
+# Logs
+logs/
+*.log
+*.out
+*.err
+log/
+
+# OS-specific
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+
+# Docker
+.dockerignore
+docker-compose.override.yml

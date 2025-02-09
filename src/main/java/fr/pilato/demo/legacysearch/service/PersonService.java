@@ -18,9 +18,22 @@
  */
 package fr.pilato.demo.legacysearch.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.github.dozermapper.core.Mapper;
+
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.json.JsonData;
-import com.github.dozermapper.core.Mapper;
 import fr.pilato.demo.legacysearch.dao.ElasticsearchDao;
 import fr.pilato.demo.legacysearch.dao.PersonRepository;
 import fr.pilato.demo.legacysearch.domain.GeoPoint;
@@ -29,16 +42,6 @@ import fr.pilato.demo.legacysearch.helper.PersonGenerator;
 import fr.pilato.demo.legacysearch.helper.Strings;
 import fr.pilato.demo.legacysearch.webapp.InitResult;
 import fr.pilato.demo.legacysearch.webapp.PersonNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class PersonService {
@@ -217,4 +220,54 @@ public class PersonService {
         long took = (System.nanoTime() - start) / 1_000_000;
         return new InitResult(took, 1000L * current / took, current);
     }
+    
+    
+    public void clearDatabaseAndIndex() {
+        logger.warn("Iniciando limpeza da base de dados e do Elasticsearch...");
+
+        // 1️⃣ Apagar todos os registros no banco de dados
+        personRepository.deleteAll();
+        logger.info("Todos os registros foram removidos do banco de dados.");
+
+        // 2️⃣ Apagar todos os documentos no Elasticsearch
+        try {
+            elasticsearchDao.deleteAll();
+            logger.info("Todos os documentos foram removidos do índice Elasticsearch.");
+        } catch (IOException e) {
+            logger.error("Erro ao limpar o Elasticsearch", e);
+        }
+
+        logger.warn("Limpeza concluída.");
+    }
+    
+    public void measureQueryPerformance() {
+        logger.warn("Iniciando medição do tempo de busca...");
+
+        // Medir tempo da busca no banco de dados MySQL
+        long startDb = System.nanoTime();
+        
+        // Converter Iterable<Person> para List<Person>
+        List<Person> dbResults = new ArrayList<>();
+        personRepository.findAll().forEach(dbResults::add);
+
+        long endDb = System.nanoTime();
+        long dbTimeMs = (endDb - startDb) / 1_000_000;
+        logger.info("Tempo para buscar no Banco de Dados (MySQL): {} ms - Registros encontrados: {}", dbTimeMs, dbResults.size());
+
+        // Medir tempo da busca no Elasticsearch
+        long startEs = System.nanoTime();
+        String esResults = "";
+        try {
+            esResults = elasticsearchDao.searchAll();
+        } catch (IOException e) {
+            logger.error("Erro ao buscar no Elasticsearch", e);
+        }
+        long endEs = System.nanoTime();
+        long esTimeMs = (endEs - startEs) / 1_000_000;
+        logger.info("Tempo para buscar no Elasticsearch: {} ms", esTimeMs);
+
+        logger.warn("Medição concluída. MySQL: {} ms, Elasticsearch: {} ms", dbTimeMs, esTimeMs);
+    }
+
+
 }

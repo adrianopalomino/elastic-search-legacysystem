@@ -18,10 +18,11 @@
  */
 package fr.pilato.demo.legacysearch.webapp;
 
-import fr.pilato.demo.legacysearch.domain.Person;
-import fr.pilato.demo.legacysearch.service.PersonService;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,7 +31,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
+import fr.pilato.demo.legacysearch.domain.Person;
+import fr.pilato.demo.legacysearch.service.PersonService;
 
 @RestController
 public class PersonController {
@@ -49,12 +51,15 @@ public class PersonController {
 
     /**
      * Create or update an entity
+     * @throws InterruptedException 
      */
     @PutMapping("/api/1/person/{id}")
-    public Person upsert(@PathVariable Integer id, @RequestBody Person person) throws IOException {
+    public Person upsert(@PathVariable Integer id, @RequestBody Person person) throws IOException, InterruptedException {
         logger.debug("upsert({}, {})", id, person);
         Person upsert = personService.upsert(id, person);
         logger.debug("created/updated {}: {}", id, upsert);
+        Thread.sleep(5000);
+        logger.debug(personService.search(upsert.getName(), "", "", 0, 10));
         return upsert;
     }
 
@@ -86,5 +91,17 @@ public class PersonController {
     @GetMapping("/api/1/person/_init_status")
     public InitResult initStatus() {
         return personService.getInitCurrentAchievement();
+    }
+    
+    @DeleteMapping("/api/1/person/clear-all")
+    public ResponseEntity<String> clearDatabase() {
+        personService.clearDatabaseAndIndex();
+        return ResponseEntity.ok("Base de dados e Elasticsearch limpos com sucesso.");
+    }
+    
+    @GetMapping("/api/1/person/measure-performance")
+    public ResponseEntity<String> measurePerformance() {
+        personService.measureQueryPerformance();
+        return ResponseEntity.ok("Medição concluída. Verifique os logs.");
     }
 }

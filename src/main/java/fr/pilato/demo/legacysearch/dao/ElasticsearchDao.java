@@ -57,9 +57,9 @@ public class ElasticsearchDao implements AutoCloseable {
     private final BulkIngester<Person> bulkIngester;
 
     public ElasticsearchDao(ObjectMapper mapper) throws IOException {
-        String clusterUrl = "https://127.0.0.1:9200";
+        String clusterUrl = "https://12cf99de02c44c848ac75074be08792c.us-central1.gcp.cloud.es.io";
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("elastic", "changeme"));
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("elastic", "Oxuw1e5gYqGl9CLFFgYr1r67"));
 
         // Create the low-level client
         RestClient restClient = RestClient.builder(HttpHost.create(clusterUrl))
@@ -107,6 +107,8 @@ public class ElasticsearchDao implements AutoCloseable {
                 .id(person.idAsString())
                 .document(person)
         )));
+        
+        bulkIngester.flush(); // TODO: Avaliar se é necessario
     }
 
     public void delete(Integer id) {
@@ -149,4 +151,31 @@ public class ElasticsearchDao implements AutoCloseable {
     public void close() {
         bulkIngester.close();
     }
+
+    public void deleteAll() throws IOException {
+        logger.warn("Apagando todos os documentos do índice 'person'...");
+
+        // 1️⃣ Envia um request para deletar todos os documentos do índice "person"
+        esClient.deleteByQuery(dq -> dq
+            .index("person")
+            .query(q -> q.matchAll(mq -> mq))
+        );
+
+        logger.info("Todos os documentos do índice 'person' foram removidos.");
+    }
+    
+    public String searchAll() throws IOException {
+        logger.info("Buscando todos os documentos no Elasticsearch...");
+
+        SearchResponse<Person> response = esClient.search(sr -> sr
+                        .index("person")
+                        .query(q -> q.matchAll(mq -> mq))
+                        .size(10_000),  // Ajuste esse valor se houver mais registros
+                Person.class);
+
+        logger.info("Busca no Elasticsearch concluída. Registros encontrados: {}", response.hits().hits().size());
+
+        return JsonpUtils.toJsonString(response, jacksonJsonpMapper);
+    }
+
 }
