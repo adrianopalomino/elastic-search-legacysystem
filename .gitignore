@@ -11,6 +11,7 @@ tmp/
 *.log
 .classpath
 .settings/
+.project
 
 # IntelliJ IDEA
 .idea/
