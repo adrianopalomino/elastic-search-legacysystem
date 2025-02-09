@@ -6,25 +6,84 @@ Introduction
 
 This is a demo project to show how to add elasticsearch to a legacy SQL project.
 
-This branch add fuzziness on queries so you can search for `jie smoth` and you will get back `Joe Smith`.
+In this branch, you will find the current legacy version of the project.
+
 
 Installation
 ------------
 
-You need to have completed [branch 05-compute](https://github.com/dadoonet/legacy-search/tree/05-compute)
+You need to have:
 
-Run it!
--------
+* Maven
+* JDK8 or higher
+* Docker
 
-Compile. If you are using you IDE, and spring-boot is still running, 
-you should directly see the changes. Otherwise, restart the application:
+Run MySQL database using docker with:
+
+```shell
+./mysql.sh
+```
+
+Build the application:
+
+```sh
+mvn clean install
+```
+
+Then run it with:
 
 ```
-# Compile and launch again
-mvn clean spring-boot:run
+java -jar target/legacy-search-8.0-SNAPSHOT.jar
+```
 
-# We don't need to reindex data as they are already in elasticsearch.
+Or directly run from Maven:
+
+```sh
+mvn clean spring-boot:run
+```
+
+Note that while developing, you would probably prefer running `LegacySearchApp#main()`
+from your IDE to get hot reload of the application.
+
+Play!
+-----
+
+### Some CRUD operations
+
+```sh
+# Create one person
+curl -XPUT http://127.0.0.1:8080/api/1/person/1 -H "Content-Type: application/json" -d '{"name":"David Pilato"}'
+
+# Read that person
+curl http://127.0.0.1:8080/api/1/person/1
+
+# Update full document
+curl -XPUT http://127.0.0.1:8080/api/1/person/1 -H "Content-Type: application/json" -d '{"name":"David Pilato", "children":3}'
+
+# Check
+curl http://127.0.0.1:8080/api/1/person/1
+
+# Delete
+curl -XDELETE http://127.0.0.1:8080/api/1/person/1
+
+# Check (you should get a 404 error)
+curl http://127.0.0.1:8080/api/1/person/1
+```
+
+### Database Initialisation
+
+```sh
+# Initialize the database with 1 000 (default) or 10 000 persons
+curl http://127.0.0.1:8080/api/1/person/_init
+curl http://127.0.0.1:8080/api/1/person/_init?size=10000
+```
+
+## Search
+
+```sh
+# Search for something (`a la google`)
+curl "http://127.0.0.1:8080/api/1/person/_search?q=Joe"
 ```
 
 You can then access the application using your browser: [http://127.0.0.1:8080/](http://127.0.0.1:8080/).
-
+You can also look at [advanced search](http://127.0.0.1:8080/#/advanced).
