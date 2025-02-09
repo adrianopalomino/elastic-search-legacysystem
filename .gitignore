@@ -9,6 +9,8 @@ tmp/
 *.DS_Store
 *.class
 *.log
+.classpath
+.settings/
 
 # IntelliJ IDEA
 .idea/
